@@ -29,8 +29,6 @@ void processingArg(int argc, char *argv[])
 	NumOfProcess = atoi(argv[2]);
 	FromCopy = argv[3];
 	ToCopy = argv[4];
-
-
 }
 
 /*
@@ -47,7 +45,7 @@ void getFilesCountsToCopy(char* path, int* result)
 	if(dir == NULL)
 		exit(2);
 
-	ent = readdir(dir);
+	ent = readdir(dir); // перечисляем все файлы в директории
 	while(ent !=0)
 	{
 		if(!strncmp(ent->d_name, ".", 1) || !strncmp(ent->d_name, "..", 2))
@@ -55,7 +53,7 @@ void getFilesCountsToCopy(char* path, int* result)
 			ent = readdir(dir);
 			continue;
 		}
-		if(ent->d_type == DT_DIR)
+		if(ent->d_type == DT_DIR) // рекурсивный вызов этой же функции
 		{
 			// a/b
 			char* newPath = calloc(256, sizeof(char));
@@ -64,17 +62,16 @@ void getFilesCountsToCopy(char* path, int* result)
 			getFilesCountsToCopy(newPath, result);
 			free(newPath);
 		}
-		else if(ent->d_type == DT_REG)
-		{
+		else if(ent->d_type == DT_REG) // подсчитываем файлы
 			++(*result);
-		}
-		ent = readdir(dir);
 
+		ent = readdir(dir);
 	}
 
 	closedir(dir);
 }
 
+// рекурсивная функция
 void fillWorkMemory(char* baseFrom, char* baseTo, int* num)
 {
 	struct dirent* ent;
