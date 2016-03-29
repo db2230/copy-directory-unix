@@ -45,11 +45,12 @@ void getFilesCountsToCopy(char* path, int* result)
 	ent = readdir(dir); // перечисляем все файлы в директории
 	while(ent !=0)
 	{
-		if(!strncmp(ent->d_name, ".", 1) || !strncmp(ent->d_name, "..", 2))
+		if(!strncmp(ent->d_name, ".", 1) || !strncmp(ent->d_name, "..", 2)) // пропускаем особые элементы
 		{
 			ent = readdir(dir);
 			continue;
 		}
+
 		if(ent->d_type == DT_DIR) // рекурсивный вызов этой же функции
 		{
 			// a/b
@@ -132,32 +133,30 @@ int main(int argc, char *argv[])
 
 	ArrChild = calloc(NumOfProcess, sizeof(pid_t)); // выделяем память для хранения потомков
 
-	int shmID = shmget(ftok(argv[0], 'a'), sizeof(int), IPC_CREAT | 0666);
-	int *shmPtr = shmat(shmID, NULL, 0);
+	int shmID = shmget(ftok(argv[0], 'a'), sizeof(int), IPC_CREAT | 0666); // создаем общую память
+	int *shmPtr = shmat(shmID, NULL, 0); // присоединяем общую память к процессу
 	*shmPtr = 0;
 
 	for(int i = 0; i < NumOfProcess; ++i)
 	{
-		ArrChild[i] = fork();
+		ArrChild[i] = fork(); // распараллеливаем процесс
 		if(ArrChild[i] == 0)
 		{
-			processChild(shmPtr);
+			processChild(shmPtr); // выборка работы и копирование файла
 			exit(0);
 		}
 	}
 
-	struct sigaction newSig;
+	struct sigaction newSig; // обработчик сигналов
 	newSig.sa_handler = funcProcessSig;
 	sigemptyset(&newSig.sa_mask);
 	newSig.sa_flags = 0;
 	sigaction(SIGUSR1, &newSig, NULL);
 
-	for(int i = 0; i < NumOfProcess; ++i)
-	{
+	for(int i = 0; i < NumOfProcess; ++i) // ждёмзавершения всех дочерних процессов
 		wait(0);
-	}
 
-	shmdt(shmPtr);
+	shmdt(shmPtr); // очищаем ресурсы
 	shmctl(shmID, IPC_RMID, NULL);
 	free(Work.Arr);
 	free(ArrChild);

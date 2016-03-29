@@ -5,6 +5,7 @@ struct Container Work;
 
 int count = 0;
 
+// копируем файл
 void copyFile(char* From, char* To)
 {
 
@@ -21,15 +22,15 @@ void copyFile(char* From, char* To)
 	file = fopen(To, "wb");
 	if(file == NULL)
 		exit(6);
+
 	fwrite(buff, size, sizeof(char), file);
 	fflush(file);
 	fclose(file);
 
 	free(buff);
-
 }
 
-
+// создаем все поддиректории
 void createAllPath(char* path)
 {
 	char buff[256];
@@ -47,14 +48,15 @@ void createAllPath(char* path)
 
 		subchr = strchr(subchr+1, '/');
 	}
-
 }
 
+// обработчик сигнала SIGUSR1
 void funcPrintf(int sgn)
 {
 	printf("Process #%d. SIGNAL: %d. Files: %d\n", getpid(), sgn, count);
 }
 
+// основная функция потомка
 void processChild(int* current)
 {
 	struct sigaction newSig;
