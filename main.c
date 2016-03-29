@@ -10,10 +10,7 @@
 
 #include "process_child.h"
 
-
-
 extern struct Container Work;
-
 
 int NumOfProcess = 1;
 char* FromCopy = NULL;
@@ -87,7 +84,7 @@ void fillWorkMemory(char* baseFrom, char* baseTo, int* num)
 			ent = readdir(dir);
 			continue;
 		}
-		if(ent->d_type == DT_DIR)
+		if(ent->d_type == DT_DIR) // рекурсивно вызываем для подпапки
 		{
 			// a/b
 			char* newFrom = calloc(256, sizeof(char));
@@ -102,7 +99,7 @@ void fillWorkMemory(char* baseFrom, char* baseTo, int* num)
 			free(newFrom);
 			free(newTo);
 		}
-		else if(ent->d_type == DT_REG)
+		else if(ent->d_type == DT_REG) // это файл
 		{
 			//Work.Arr[num].From/.To
 			snprintf(Work.Arr[*num].From, 256, "%s/%s", baseFrom, ent->d_name);
@@ -112,19 +109,14 @@ void fillWorkMemory(char* baseFrom, char* baseTo, int* num)
 			++(*num);
 		}
 		ent = readdir(dir);
-
 	}
-
 	closedir(dir);
 }
 
 void funcProcessSig(int sgn)
 {
-
 	for(int i = 0; i < NumOfProcess; ++i)
-	{
-		kill(ArrChild[i], SIGUSR1);
-	}
+		kill(ArrChild[i], SIGUSR1); // посылаем сигнал подпроцессам
 }
 
 int main(int argc, char *argv[])
@@ -138,7 +130,7 @@ int main(int argc, char *argv[])
 	if(num != Work.count)
 		exit(3);
 
-	ArrChild = calloc(NumOfProcess, sizeof(pid_t));
+	ArrChild = calloc(NumOfProcess, sizeof(pid_t)); // выделяем память для хранения потомков
 
 	int shmID = shmget(ftok(argv[0], 'a'), sizeof(int), IPC_CREAT | 0666);
 	int *shmPtr = shmat(shmID, NULL, 0);
